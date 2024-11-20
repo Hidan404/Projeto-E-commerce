@@ -59,3 +59,19 @@ FROM Cliente c
 LEFT JOIN PessoaFisica pf ON c.PessoaFisicaId = pf.idPessoaFisica
 LEFT JOIN PessoaJuridica pj ON c.PessoaJuridicaId = pj.idPessoaJuridica;
 
+
+
+
+### 🔎 Recuperações simples com `SELECT`
+**Pergunta:** Quais são os clientes cadastrados, com seu tipo (Pessoa Física ou Jurídica)?  
+```sql
+SELECT 
+    c.Nome, 
+    c.TipoCliente, 
+    pf.CPF, 
+    pj.CNPJ 
+FROM Cliente c
+LEFT JOIN PessoaFisica pf ON c.PessoaFisicaId = pf.idPessoaFisica
+LEFT JOIN PessoaJuridica pj ON c.PessoaJuridicaId = pj.idPessoaJuridica;
+
+
