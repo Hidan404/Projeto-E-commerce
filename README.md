@@ -58,20 +58,139 @@ SELECT
 FROM Cliente c
 LEFT JOIN PessoaFisica pf ON c.PessoaFisicaId = pf.idPessoaFisica
 LEFT JOIN PessoaJuridica pj ON c.PessoaJuridicaId = pj.idPessoaJuridica;
+```
 
+### 🔎 Filtros com `WHERE`
 
+**Pergunta:** Quais pedidos têm valor de frete maior que R$50,00 e qual é o status da entrega associada?
 
-
-### 🔎 Recuperações simples com `SELECT`
-**Pergunta:** Quais são os clientes cadastrados, com seu tipo (Pessoa Física ou Jurídica)?  
 ```sql
 SELECT 
-    c.Nome, 
-    c.TipoCliente, 
-    pf.CPF, 
-    pj.CNPJ 
+    p.idPedido,
+    p.Frete,
+    e.StatusEntrega
+FROM Pedido p
+JOIN Entrega e ON p.EntregaId = e.idEntrega
+WHERE p.Frete > 50.00;
+```
+
+### 🔎 Contagem e agrupamento com `GROUP BY`
+
+**Pergunta:** Quantos pedidos cada cliente fez, agrupados por cliente?
+
+```sql
+SELECT 
+    c.Nome AS NomeCliente,
+    COUNT(p.idPedido) AS TotalPedidos
 FROM Cliente c
-LEFT JOIN PessoaFisica pf ON c.PessoaFisicaId = pf.idPessoaFisica
-LEFT JOIN PessoaJuridica pj ON c.PessoaJuridicaId = pj.idPessoaJuridica;
+LEFT JOIN Pedido p ON c.idCliente = p.ClienteId
+GROUP BY c.idCliente, c.Nome
+ORDER BY TotalPedidos DESC;
+```
+
+### 🔎 Expressões para gerar atributos derivados
+
+**Pergunta:** Qual é o valor total pago por pedido?
+
+```sql
+SELECT 
+    ped.idPedido,
+    SUM(pag.Valor) AS ValorTotalPago
+FROM Pedido ped
+JOIN Pagamento pag ON ped.idPedido = pag.PedidoId
+GROUP BY ped.idPedido
+HAVING SUM(pag.Valor) > 0;
+```
+
+### 🔎 Ordenação com `ORDER BY`
+
+**Pergunta:** Quais produtos estão disponíveis no estoque e em quais localizações?
+
+```sql
+SELECT 
+    p.Descricao AS NomeProduto,
+    e.Localizacao,
+    ep.Quantidade
+FROM EstoqueProduto ep
+JOIN Produto p ON ep.ProdutoId = p.idProduto
+JOIN Estoque e ON ep.EstoqueId = e.idEstoque
+WHERE ep.Quantidade > 0
+ORDER BY ep.Quantidade DESC;
+```
+
+### 🔎 Condições de filtros aos grupos com `HAVING`
+
+**Pergunta:** Quais são os fornecedores de cada produto e quantos produtos cada fornecedor fornece?
+
+```sql
+SELECT 
+    f.RazaoSocial AS NomeFornecedor,
+    COUNT(pf.ProdutoId) AS TotalProdutos
+FROM Fornecedor f
+JOIN ProdutoFornecedor pf ON f.idFornecedor = pf.FornecedorId
+GROUP BY f.idFornecedor, f.RazaoSocial
+HAVING COUNT(pf.ProdutoId) > 0
+ORDER BY TotalProdutos DESC;
+```
+
+### 🔎 Junções entre tabelas com `JOIN`
+
+**Pergunta:** Qual a média do valor dos produtos por categoria?
+
+```sql
+SELECT 
+    p.Categoria,
+    AVG(p.Valor) AS MediaValor
+FROM Produto p
+GROUP BY p.Categoria
+HAVING AVG(p.Valor) > 0;
+```
+
+### 🔎 Junções entre tabelas com `JOIN` (Continuação)
+
+**Pergunta:** Quais pedidos têm status "Aprovado" e já possuem pagamentos associados, ordenados pela data de pagamento?
+
+```sql
+SELECT 
+    ped.idPedido,
+    ped.StatusPedido,
+    pag.DataPagamento,
+    pag.Valor AS ValorPago
+FROM Pedido ped
+JOIN Pagamento pag ON ped.idPedido = pag.PedidoId
+WHERE ped.StatusPedido = 'Aprovado'
+ORDER BY pag.DataPagamento ASC;
+```
+
+### 🔎 Contagem de registros
+
+**Pergunta:** Quantos clientes cadastrados são pessoa física e quantos são pessoa jurídica?
+
+```sql
+SELECT 
+    CASE 
+        WHEN c.PessoaFisicaId IS NOT NULL THEN 'Pessoa Física'
+        WHEN c.PessoaJuridicaId IS NOT NULL THEN 'Pessoa Jurídica'
+    END AS TipoCliente,
+    COUNT(*) AS TotalClientes
+FROM Cliente c
+GROUP BY TipoCliente;
+```
+
+### 🔎 Clientes sem pedidos
+
+**Pergunta:** Quais clientes ainda não realizaram nenhum pedido?
+
+```sql
+SELECT 
+    c.Nome AS NomeCliente,
+    c.Identificacao AS IdentificacaoCliente
+FROM Cliente c
+LEFT JOIN Pedido p ON c.idCliente = p.ClienteId
+WHERE p.idPedido IS NULL;
+```
+
+
+
 
 
